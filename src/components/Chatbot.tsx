@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendMessageStream } from '../api/chat';
 import type { Message } from '../api/chat';
-import { Send, User, Bot, Loader2, RefreshCw } from 'lucide-react';
+import { Send, User, Bot, Loader2, RefreshCw, ChevronLeft } from 'lucide-react';
 import './Chatbot.css';
+
+const TOPICS = ['일상 회화', '비즈니스 영어', '공항/여행 영어', '토익/수능 필수 단어'];
+const DIFFICULTIES = ['초급', '중급', '고급'];
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -19,13 +23,12 @@ const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendContent = async (content: string) => {
+    if (!content.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content };
     const newMessages = [...messages, userMessage];
-    
+
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
@@ -61,9 +64,79 @@ const Chatbot: React.FC = () => {
     }
   };
 
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    await sendContent(input);
+  };
+
+  const handleTopicSelect = (topic: string) => {
+    setSelectedTopic(topic);
+  };
+
+  const handleDifficultySelect = async (difficulty: string) => {
+    const content = `주제: ${selectedTopic} 난이도: ${difficulty} 위 조건에 맞는 영어 단어 퀴즈를 시작해줘.`;
+    setSelectedTopic(null);
+    await sendContent(content);
+  };
+
   const resetChat = () => {
     setMessages([]);
     setError(null);
+    setSelectedTopic(null);
+  };
+
+  const isWelcome = messages.length === 0;
+
+  /* 퀵 선택 패널: 대화 중에도 입력창 위에 표시 */
+  const renderQuickPanel = () => {
+    if (!selectedTopic) {
+      return (
+        <div className="quick-panel">
+          <p className="quick-panel-title">🎯 주제 선택</p>
+          <div className="quick-buttons topic-buttons">
+            {TOPICS.map((topic) => (
+              <button
+                key={topic}
+                className="selection-btn quick-btn"
+                onClick={() => handleTopicSelect(topic)}
+                disabled={isLoading}
+              >
+                {topic}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="quick-panel">
+        <div className="quick-panel-header">
+          <button
+            className="back-btn"
+            onClick={() => setSelectedTopic(null)}
+          >
+            <ChevronLeft size={14} />
+            주제 변경
+          </button>
+          <div className="selected-topic-badge">
+            <span>📌 {selectedTopic}</span>
+          </div>
+        </div>
+        <p className="quick-panel-title">⚡ 난이도 선택</p>
+        <div className="quick-buttons difficulty-buttons">
+          {DIFFICULTIES.map((diff) => (
+            <button
+              key={diff}
+              className={`selection-btn difficulty-btn difficulty-${diff}`}
+              onClick={() => handleDifficultySelect(diff)}
+              disabled={isLoading}
+            >
+              {diff}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -82,14 +155,14 @@ const Chatbot: React.FC = () => {
       </header>
 
       <div className="messages-container">
-        {messages.length === 0 && (
+        {isWelcome && (
           <div className="welcome-message">
             <Bot size={48} className="welcome-icon" />
             <h2>안녕하세요! 👋</h2>
-            <p>원하는 <strong>주제</strong>(예: 여행, 비즈니스)나 <br /><strong>난이도</strong>(예: 초급, 고급)를 말씀해 주세요!</p>
+            <p className="welcome-sub">아래 버튼으로 주제를 선택하거나 직접 입력하세요.</p>
           </div>
         )}
-        
+
         {messages.map((msg, index) => (
           <div key={index} className={`message-wrapper ${msg.role}`}>
             <div className="message-icon">
@@ -100,7 +173,7 @@ const Chatbot: React.FC = () => {
             </div>
           </div>
         ))}
-        
+
         {isLoading && (
           <div className="message-wrapper assistant">
             <div className="message-icon">
@@ -112,7 +185,7 @@ const Chatbot: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         {error && (
           <div className="error-message">
             {error}
@@ -121,12 +194,15 @@ const Chatbot: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 주제/난이도 단계별 퀵 선택 패널 (항상 표시) */}
+      {renderQuickPanel()}
+
       <form onSubmit={handleSend} className="input-area">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="메시지를 입력하세요..."
+          placeholder="또는 직접 입력하세요..."
           disabled={isLoading}
         />
         <button type="submit" disabled={!input.trim() || isLoading} className="send-button">

@@ -252,11 +252,165 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Selection Panel ── */
+.selection-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 12px;
+  animation: fadeIn 0.35s ease-out;
+}
+
+.selection-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.selection-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.selection-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.difficulty-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.selection-btn {
+  padding: 10px 18px;
+  border: 1.5px solid #e0e4f0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.selection-btn:hover {
+  background: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+}
+
+.difficulty-btn {
+  text-align: center;
+  padding: 10px 8px;
+}
+
+.difficulty-초급:hover  { background: #10b981; border-color: #10b981; box-shadow: 0 6px 16px rgba(16,185,129,0.3); }
+.difficulty-중급:hover  { background: #f59e0b; border-color: #f59e0b; box-shadow: 0 6px 16px rgba(245,158,11,0.3); }
+.difficulty-고급:hover  { background: #ef4444; border-color: #ef4444; box-shadow: 0 6px 16px rgba(239,68,68,0.3); }
+
+.selected-topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef2ff;
+  color: var(--primary-color);
+  border: 1.5px solid #c7d2fe;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #f3f4f6;
+  color: var(--text-main);
+}
+
+/* ── Welcome Sub ── */
+.welcome-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* ── Quick Panel (always visible above input) ── */
+.quick-panel {
+  padding: 12px 1.5rem 10px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.quick-panel-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quick-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-btn {
+  font-size: 0.82rem;
+  padding: 7px 14px;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .chatbot-container {
     height: 100vh;
     margin: 0;
     border-radius: 0;
+  }
+
+  .topic-buttons .selection-btn,
+  .quick-btn {
+    font-size: 0.8rem;
+    padding: 7px 12px;
   }
 }
