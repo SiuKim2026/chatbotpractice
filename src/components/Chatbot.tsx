@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { sendMessage } from '../api/chat';
+import { sendMessageStream } from '../api/chat';
 import type { Message } from '../api/chat';
 import { Send, User, Bot, Loader2, RefreshCw } from 'lucide-react';
 import './Chatbot.css';
@@ -31,11 +31,30 @@ const Chatbot: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
+    let assistantMessageContent = '';
+
     try {
-      const assistantMessage = await sendMessage(newMessages);
-      setMessages((prev) => [...prev, assistantMessage]);
+      let isFirstChunk = true;
+      await sendMessageStream(newMessages, (chunk) => {
+        if (isFirstChunk) {
+          setIsLoading(false);
+          isFirstChunk = false;
+          assistantMessageContent = chunk;
+          setMessages((prev) => [...prev, { role: 'assistant', content: assistantMessageContent }]);
+        } else {
+          assistantMessageContent += chunk;
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
+              updated[lastIndex] = { ...updated[lastIndex], content: assistantMessageContent };
+            }
+            return updated;
+          });
+        }
+      });
     } catch (err: any) {
-      setError('죄송합니다. 메시지를 보내는 중 오류가 발생했습니다.');
+      setError(`죄송합니다. 메시지를 보내는 중 오류가 발생했습니다. (${err.message || err})`);
       console.error(err);
     } finally {
       setIsLoading(false);

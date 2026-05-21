@@ -16,11 +16,10 @@ const SYSTEM_PROMPT = `당신은 "영어 단어 퀴즈 챗봇"입니다.
 5. 마지막에는 복습 퀴즈를 1개만 내줍니다.
 6. 사용자가 주제나 난이도를 말하지 않으면 먼저 친절하게 물어봅니다.`;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export default async function handler(req: Request) {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { 
       status: 405,
@@ -39,17 +38,40 @@ export default async function handler(req: Request) {
     }
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages,
       ],
       temperature: 0.7,
+      stream: true,
     });
 
-    return new Response(JSON.stringify(response.choices[0].message), {
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of response) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          }
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
   } catch (error: any) {
     console.error('Error in API:', error);
